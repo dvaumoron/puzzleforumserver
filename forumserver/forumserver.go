@@ -21,8 +21,8 @@ import (
 	"context"
 	"errors"
 	"log"
-	"strings"
 
+	dbclient "github.com/dvaumoron/puzzledbclient"
 	"github.com/dvaumoron/puzzleforumserver/model"
 	pb "github.com/dvaumoron/puzzleforumservice"
 	"gorm.io/gorm"
@@ -84,7 +84,7 @@ func (s server) GetThreads(ctx context.Context, request *pb.SearchRequest) (*pb.
 	if filter == "" {
 		threadRequest.Where("object_id = ?", objectId)
 	} else {
-		filter = buildLikeFilter(filter)
+		filter = dbclient.BuildLikeFilter(filter)
 		threadRequest.Where("object_id = ? AND text LIKE ?", objectId, filter)
 	}
 
@@ -99,7 +99,7 @@ func (s server) GetThreads(ctx context.Context, request *pb.SearchRequest) (*pb.
 	}
 
 	var threads []model.Thread
-	page := s.paginate(request.Start, request.End).Order("created_at desc")
+	page := dbclient.Paginate(s.db, request.Start, request.End).Order("created_at desc")
 	if filter == "" {
 		err = page.Find(&threads, "object_id = ?", objectId).Error
 	} else {
@@ -121,7 +121,7 @@ func (s server) GetMessages(ctx context.Context, request *pb.SearchRequest) (*pb
 	if filter == "" {
 		messageRequest.Where("thread_id = ?", threadId)
 	} else {
-		filter = buildLikeFilter(filter)
+		filter = dbclient.BuildLikeFilter(filter)
 		messageRequest.Where("thread_id = ? AND text LIKE ?", threadId, filter)
 	}
 
@@ -136,7 +136,7 @@ func (s server) GetMessages(ctx context.Context, request *pb.SearchRequest) (*pb
 	}
 
 	var messages []model.Message
-	page := s.paginate(request.Start, request.End).Order("created_at desc")
+	page := dbclient.Paginate(s.db, request.Start, request.End).Order("created_at desc")
 	if filter == "" {
 		err = page.Find(&messages, "thread_id = ?", threadId).Error
 	} else {
@@ -164,23 +164,6 @@ func (s server) DeleteMessage(ctx context.Context, request *pb.IdRequest) (*pb.R
 		return nil, errInternal
 	}
 	return &pb.Response{Success: true}, nil
-}
-
-func (s server) paginate(start uint64, end uint64) *gorm.DB {
-	return s.db.Offset(int(start)).Limit(int(end - start))
-}
-
-func buildLikeFilter(filter string) string {
-	filter = strings.ReplaceAll(filter, ".*", "%")
-	var likeBuilder strings.Builder
-	if strings.IndexByte(filter, '%') != 0 {
-		likeBuilder.WriteByte('%')
-	}
-	likeBuilder.WriteString(filter)
-	if strings.LastIndexByte(filter, '%') != len(filter)-1 {
-		likeBuilder.WriteByte('%')
-	}
-	return likeBuilder.String()
 }
 
 func convertThreadFromModel(thread model.Thread) *pb.Content {

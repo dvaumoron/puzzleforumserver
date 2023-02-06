@@ -30,6 +30,8 @@ github.com/dnaeon/go-vcr v1.2.0/go.mod h1:R4UdLID7HZT3taECzJs4YgbbH6PIGXB6W/sc5O
 github.com/dustin/go-humanize v1.0.0/go.mod h1:HtrtbFcZ19U5GC7JDqmcUSB87Iq5E25KnS6fMYU6eOk=
 github.com/dvaumoron/puzzledbclient v1.1.0 h1:WhXKyLr6Ek8XaYbDpEsd5PY7+/YxACw/QhOYPFL5zQg=
 github.com/dvaumoron/puzzledbclient v1.1.0/go.mod h1:KxjDYaNCZHERFrYZgtfydJpN1HZccXV/gWW5XHimi3Y=
+github.com/dvaumoron/puzzledbclient v1.2.0 h1:5O8qQi7SuGk82hGJC2e323ahyCCWtxr4n1853/oTbcE=
+github.com/dvaumoron/puzzledbclient v1.2.0/go.mod h1:KxjDYaNCZHERFrYZgtfydJpN1HZccXV/gWW5XHimi3Y=
 github.com/dvaumoron/puzzleforumservice v1.4.0 h1:39BTgVB7A6bev/Jo0V3O4RSusK/jlJ97fwmr1/iGsTE=
 github.com/dvaumoron/puzzleforumservice v1.4.0/go.mod h1:cCNSZOUMidXTNIrNjfTRYduK+A3oa4B6YEGEKbvwkPg=
 github.com/dvaumoron/puzzlegrpcserver v1.0.1 h1:Vj11s5AKjxZKjTIk3/VOUzT0sJpH8gOnmOlqyZpQlk4=
