@@ -44,7 +44,11 @@ func New(db *gorm.DB) pb.ForumServer {
 }
 
 func (s server) CreateThread(ctx context.Context, request *pb.CreateRequest) (*pb.Response, error) {
-	thread := model.Thread{ObjectId: request.ContainerId, UserId: request.UserId, Title: request.Text}
+	userId := request.UserId
+	thread := model.Thread{
+		ObjectId: request.ContainerId, UserId: userId, Title: request.Title,
+		Messages: []model.Message{{UserId: userId, Text: request.Text}},
+	}
 	if err := s.db.Create(&thread).Error; err != nil {
 		log.Println(dbAccessMsg, err)
 		return nil, errInternal
