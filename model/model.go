@@ -23,6 +23,7 @@ type Thread struct {
 	ID        uint64
 	CreatedAt time.Time
 	ObjectId  uint64
+	UserId    uint64
 	Title     string
 	Messages  []Message
 }
@@ -31,5 +32,6 @@ type Message struct {
 	ID        uint64
 	CreatedAt time.Time
 	ThreadID  uint64
+	UserId    uint64
 	Text      string
 }
