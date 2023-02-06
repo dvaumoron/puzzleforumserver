@@ -78,8 +78,18 @@ func (s server) GetThread(ctx context.Context, request *pb.IdRequest) (*pb.Conte
 
 func (s server) GetThreads(ctx context.Context, request *pb.SearchRequest) (*pb.Contents, error) {
 	objectId := request.ContainerId
+	filter := request.Filter
+
+	threadRequest := s.db.Model(&model.Thread{})
+	if filter == "" {
+		threadRequest.Where("object_id = ?", objectId)
+	} else {
+		filter = buildLikeFilter(filter)
+		threadRequest.Where("object_id = ? AND text LIKE ?", objectId, filter)
+	}
+
 	var total int64
-	err := s.db.Model(&model.Thread{}).Where("object_id = ?", objectId).Count(&total).Error
+	err := threadRequest.Count(&total).Error
 	if err != nil {
 		log.Println(dbAccessMsg, err)
 		return nil, errInternal
@@ -90,10 +100,10 @@ func (s server) GetThreads(ctx context.Context, request *pb.SearchRequest) (*pb.
 
 	var threads []model.Thread
 	page := s.paginate(request.Start, request.End).Order("created_at desc")
-	if filter := request.Filter; filter == "" {
+	if filter == "" {
 		err = page.Find(&threads, "object_id = ?", objectId).Error
 	} else {
-		err = page.Find(&threads, "object_id = ? AND title LIKE ?", objectId, buildLikeFilter(filter)).Error
+		err = page.Find(&threads, "object_id = ? AND title LIKE ?", objectId, filter).Error
 	}
 
 	if err != nil {
@@ -105,8 +115,18 @@ func (s server) GetThreads(ctx context.Context, request *pb.SearchRequest) (*pb.
 
 func (s server) GetMessages(ctx context.Context, request *pb.SearchRequest) (*pb.Contents, error) {
 	threadId := request.ContainerId
+	filter := request.Filter
+
+	messageRequest := s.db.Model(&model.Message{})
+	if filter == "" {
+		messageRequest.Where("thread_id = ?", threadId)
+	} else {
+		filter = buildLikeFilter(filter)
+		messageRequest.Where("thread_id = ? AND text LIKE ?", threadId, filter)
+	}
+
 	var total int64
-	err := s.db.Model(&model.Thread{}).Where("thread_id = ?", threadId).Count(&total).Error
+	err := messageRequest.Count(&total).Error
 	if err != nil {
 		log.Println(dbAccessMsg, err)
 		return nil, errInternal
@@ -117,10 +137,10 @@ func (s server) GetMessages(ctx context.Context, request *pb.SearchRequest) (*pb
 
 	var messages []model.Message
 	page := s.paginate(request.Start, request.End).Order("created_at desc")
-	if filter := request.Filter; filter == "" {
+	if filter == "" {
 		err = page.Find(&messages, "thread_id = ?", threadId).Error
 	} else {
-		err = page.Find(&messages, "thread_id = ? AND text LIKE ?", threadId, buildLikeFilter(filter)).Error
+		err = page.Find(&messages, "thread_id = ? AND text LIKE ?", threadId, filter).Error
 	}
 
 	if err != nil {
