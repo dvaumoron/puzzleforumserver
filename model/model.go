@@ -25,7 +25,7 @@ type Thread struct {
 	ObjectId  uint64
 	UserId    uint64
 	Title     string
-	Messages  []Message
+	Messages  []Message `gorm:"constraint:OnDelete:CASCADE;"`
 }
 
 type Message struct {

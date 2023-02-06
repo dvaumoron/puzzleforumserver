@@ -47,7 +47,9 @@ func (s server) CreateThread(ctx context.Context, request *pb.CreateRequest) (*p
 	userId := request.UserId
 	thread := model.Thread{
 		ObjectId: request.ContainerId, UserId: userId, Title: request.Title,
-		Messages: []model.Message{{UserId: userId, Text: request.Text}},
+	}
+	if text := request.Text; text != "" {
+		thread.Messages = []model.Message{{UserId: userId, Text: text}}
 	}
 	if err := s.db.Create(&thread).Error; err != nil {
 		log.Println(dbAccessMsg, err)
