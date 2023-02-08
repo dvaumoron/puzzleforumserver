@@ -85,7 +85,7 @@ func (s server) GetThreads(ctx context.Context, request *pb.SearchRequest) (*pb.
 		threadRequest.Where("object_id = ?", objectId)
 	} else {
 		filter = dbclient.BuildLikeFilter(filter)
-		threadRequest.Where("object_id = ? AND text LIKE ?", objectId, filter)
+		threadRequest.Where("object_id = ? AND title LIKE ?", objectId, filter)
 	}
 
 	var total int64
