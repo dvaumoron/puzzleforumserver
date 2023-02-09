@@ -32,7 +32,7 @@ const dbAccessMsg = "Failed to access database :"
 
 var errInternal = errors.New("internal service error")
 
-// server is used to implement puzzlerightservice.RightServer.
+// server is used to implement puzzleforumservice.ForumServer.
 type server struct {
 	pb.UnimplementedForumServer
 	db *gorm.DB
