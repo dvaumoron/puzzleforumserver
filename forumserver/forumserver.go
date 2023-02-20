@@ -136,7 +136,7 @@ func (s server) GetMessages(ctx context.Context, request *pb.SearchRequest) (*pb
 	}
 
 	var messages []model.Message
-	page := dbclient.Paginate(s.db, request.Start, request.End).Order("created_at desc")
+	page := dbclient.Paginate(s.db, request.Start, request.End).Order("created_at asc")
 	if filter == "" {
 		err = page.Find(&messages, "thread_id = ?", threadId).Error
 	} else {
