@@ -79,9 +79,10 @@ func (s server) GetThread(ctx context.Context, request *pb.IdRequest) (*pb.Conte
 func (s server) GetThreads(ctx context.Context, request *pb.SearchRequest) (*pb.Contents, error) {
 	objectId := request.ContainerId
 	filter := request.Filter
+	noFilter := filter == ""
 
 	threadRequest := s.db.Model(&model.Thread{})
-	if filter == "" {
+	if noFilter {
 		threadRequest.Where("object_id = ?", objectId)
 	} else {
 		filter = dbclient.BuildLikeFilter(filter)
@@ -100,7 +101,7 @@ func (s server) GetThreads(ctx context.Context, request *pb.SearchRequest) (*pb.
 
 	var threads []model.Thread
 	page := dbclient.Paginate(s.db, request.Start, request.End).Order("created_at desc")
-	if filter == "" {
+	if noFilter {
 		err = page.Find(&threads, "object_id = ?", objectId).Error
 	} else {
 		err = page.Find(&threads, "object_id = ? AND title LIKE ?", objectId, filter).Error
