@@ -20,27 +20,28 @@ package forumserver
 import (
 	"context"
 	"errors"
-	"log"
 
 	dbclient "github.com/dvaumoron/puzzledbclient"
 	"github.com/dvaumoron/puzzleforumserver/model"
 	pb "github.com/dvaumoron/puzzleforumservice"
+	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
 
-const dbAccessMsg = "Failed to access database :"
+const dbAccessMsg = "Failed to access database"
 
 var errInternal = errors.New("internal service error")
 
 // server is used to implement puzzleforumservice.ForumServer.
 type server struct {
 	pb.UnimplementedForumServer
-	db *gorm.DB
+	db     *gorm.DB
+	logger *zap.Logger
 }
 
-func New(db *gorm.DB) pb.ForumServer {
+func New(db *gorm.DB, logger *zap.Logger) pb.ForumServer {
 	db.AutoMigrate(&model.Thread{}, &model.Message{})
-	return server{db: db}
+	return server{db: db, logger: logger}
 }
 
 func (s server) CreateThread(ctx context.Context, request *pb.CreateRequest) (*pb.Response, error) {
@@ -52,7 +53,7 @@ func (s server) CreateThread(ctx context.Context, request *pb.CreateRequest) (*p
 		thread.Messages = []model.Message{{UserId: userId, Text: text}}
 	}
 	if err := s.db.Create(&thread).Error; err != nil {
-		log.Println(dbAccessMsg, err)
+		s.logger.Error(dbAccessMsg, zap.Error(err))
 		return nil, errInternal
 	}
 	return &pb.Response{Success: true, Id: thread.ID}, nil
@@ -61,7 +62,7 @@ func (s server) CreateThread(ctx context.Context, request *pb.CreateRequest) (*p
 func (s server) CreateMessage(ctx context.Context, request *pb.CreateRequest) (*pb.Response, error) {
 	message := model.Message{ThreadID: request.ContainerId, UserId: request.UserId, Text: request.Text}
 	if err := s.db.Create(&message).Error; err != nil {
-		log.Println(dbAccessMsg, err)
+		s.logger.Error(dbAccessMsg, zap.Error(err))
 		return nil, errInternal
 	}
 	return &pb.Response{Success: true, Id: message.ID}, nil
@@ -70,7 +71,7 @@ func (s server) CreateMessage(ctx context.Context, request *pb.CreateRequest) (*
 func (s server) GetThread(ctx context.Context, request *pb.IdRequest) (*pb.Content, error) {
 	var thread model.Thread
 	if err := s.db.First(&thread, request.Id).Error; err != nil {
-		log.Println(dbAccessMsg, err)
+		s.logger.Error(dbAccessMsg, zap.Error(err))
 		return nil, errInternal
 	}
 	return convertThreadFromModel(thread), nil
@@ -92,7 +93,7 @@ func (s server) GetThreads(ctx context.Context, request *pb.SearchRequest) (*pb.
 	var total int64
 	err := threadRequest.Count(&total).Error
 	if err != nil {
-		log.Println(dbAccessMsg, err)
+		s.logger.Error(dbAccessMsg, zap.Error(err))
 		return nil, errInternal
 	}
 	if total == 0 {
@@ -108,7 +109,7 @@ func (s server) GetThreads(ctx context.Context, request *pb.SearchRequest) (*pb.
 	}
 
 	if err != nil {
-		log.Println(dbAccessMsg, err)
+		s.logger.Error(dbAccessMsg, zap.Error(err))
 		return nil, errInternal
 	}
 	return &pb.Contents{List: convertThreadsFromModel(threads), Total: uint64(total)}, nil
@@ -129,7 +130,7 @@ func (s server) GetMessages(ctx context.Context, request *pb.SearchRequest) (*pb
 	var total int64
 	err := messageRequest.Count(&total).Error
 	if err != nil {
-		log.Println(dbAccessMsg, err)
+		s.logger.Error(dbAccessMsg, zap.Error(err))
 		return nil, errInternal
 	}
 	if total == 0 {
@@ -145,7 +146,7 @@ func (s server) GetMessages(ctx context.Context, request *pb.SearchRequest) (*pb
 	}
 
 	if err != nil {
-		log.Println(dbAccessMsg, err)
+		s.logger.Error(dbAccessMsg, zap.Error(err))
 		return nil, errInternal
 	}
 	return &pb.Contents{List: convertMessagesFromModel(messages), Total: uint64(total)}, nil
@@ -153,7 +154,7 @@ func (s server) GetMessages(ctx context.Context, request *pb.SearchRequest) (*pb
 
 func (s server) DeleteThread(ctx context.Context, request *pb.IdRequest) (*pb.Response, error) {
 	if err := s.db.Delete(&model.Thread{}, request.Id).Error; err != nil {
-		log.Println(dbAccessMsg, err)
+		s.logger.Error(dbAccessMsg, zap.Error(err))
 		return nil, errInternal
 	}
 	return &pb.Response{Success: true}, nil
@@ -161,7 +162,7 @@ func (s server) DeleteThread(ctx context.Context, request *pb.IdRequest) (*pb.Re
 
 func (s server) DeleteMessage(ctx context.Context, request *pb.IdRequest) (*pb.Response, error) {
 	if err := s.db.Delete(&model.Message{}, request.Id).Error; err != nil {
-		log.Println(dbAccessMsg, err)
+		s.logger.Error(dbAccessMsg, zap.Error(err))
 		return nil, errInternal
 	}
 	return &pb.Response{Success: true}, nil

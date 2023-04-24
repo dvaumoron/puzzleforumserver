@@ -25,7 +25,7 @@ import (
 )
 
 func main() {
-	s := grpcserver.New()
-	pb.RegisterForumServer(s, forumserver.New(dbclient.Create()))
+	s := grpcserver.Make()
+	pb.RegisterForumServer(s, forumserver.New(dbclient.Create(s.Logger), s.Logger))
 	s.Start()
 }
