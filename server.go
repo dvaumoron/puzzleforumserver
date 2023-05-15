@@ -18,14 +18,19 @@
 package main
 
 import (
+	_ "embed"
+
 	dbclient "github.com/dvaumoron/puzzledbclient"
 	"github.com/dvaumoron/puzzleforumserver/forumserver"
 	pb "github.com/dvaumoron/puzzleforumservice"
 	grpcserver "github.com/dvaumoron/puzzlegrpcserver"
 )
 
+//go:embed version.txt
+var version string
+
 func main() {
-	s := grpcserver.Make()
+	s := grpcserver.Make(forumserver.ForumKey, version)
 	pb.RegisterForumServer(s, forumserver.New(dbclient.Create(s.Logger), s.Logger))
 	s.Start()
 }
