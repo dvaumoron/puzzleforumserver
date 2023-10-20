@@ -20,6 +20,8 @@ package model
 
 import "time"
 
+// TODO use Cornucopia and sql.crn to get rid of Gorm
+
 type Thread struct {
 	ID        uint64
 	CreatedAt time.Time
